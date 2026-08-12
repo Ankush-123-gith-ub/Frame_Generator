@@ -1080,6 +1080,11 @@ export default function HHGoaApp() {
   const cameraInputRef = useRef(null);
   const objectUrlRef = useRef(null);
 
+  const [showCamera, setShowCamera] = useState(false);
+  const [cameraError, setCameraError] = useState("");
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+
   const W = format === "pfp" ? 1080 : 1600;
   const H = format === "pfp" ? 1080 : 2000;
 
@@ -1139,6 +1144,58 @@ export default function HHGoaApp() {
     const file = e.dataTransfer.files && e.dataTransfer.files[0];
     handleFile(file);
   };
+
+  // ---- in-browser camera (works on laptop webcam AND phone camera) ----
+  const stopCameraStream = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+  };
+
+  const openCamera = async () => {
+    setCameraError("");
+    setShowCamera(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+        audio: false,
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+    } catch (err) {
+      // Camera denied, unavailable, or unsupported (e.g. non-HTTPS) — fall back to native file picker
+      setShowCamera(false);
+      if (cameraInputRef.current) cameraInputRef.current.click();
+    }
+  };
+
+  const closeCamera = () => {
+    stopCameraStream();
+    setShowCamera(false);
+    setCameraError("");
+  };
+
+  const capturePhoto = () => {
+    const video = videoRef.current;
+    if (!video || !video.videoWidth) return;
+    const cnv = document.createElement("canvas");
+    cnv.width = video.videoWidth;
+    cnv.height = video.videoHeight;
+    const ctx = cnv.getContext("2d");
+    ctx.drawImage(video, 0, 0);
+    cnv.toBlob((blob) => {
+      if (!blob) return;
+      const file = new File([blob], `camera-${Date.now()}.jpg`, { type: "image/jpeg" });
+      handleFile(file);
+      closeCamera();
+    }, "image/jpeg", 0.92);
+  };
+
+  useEffect(() => () => stopCameraStream(), []);
 
   const shuffleTitle = () => {
     setTitle((prev) => {
@@ -1448,6 +1505,11 @@ export default function HHGoaApp() {
         .hhg-hashtag-row { margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: 'Space Mono', monospace; font-weight: 700; color: var(--dark-green); }
         .hhg-copy-btn { background: var(--cream-dim); border: 2px solid var(--dark-green); border-radius: 999px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .hhg-close-x { position: absolute; top: 18px; right: 18px; background: rgba(4,51,35,0.08); border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--dark-green); }
+        .hhg-camera-overlay { position: fixed; inset: 0; background: rgba(10,20,15,0.82); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 20px; }
+        .hhg-camera-box { position: relative; background: var(--cream); border-radius: 18px; padding: 20px; width: 100%; max-width: 480px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+        .hhg-camera-video { width: 100%; max-height: 60vh; border-radius: 12px; background: #000; object-fit: cover; transform: scaleX(-1); }
+        .hhg-camera-error { padding: 24px 12px; text-align: center; font-weight: 600; }
+        .hhg-camera-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 
         .hhg-developing { display: flex; flex-direction: column; align-items: center; gap: 16px; color: var(--cream); }
         .hhg-developing-icon { font-size: 46px; animation: hhg-bounce 1s ease-in-out infinite; }
@@ -1502,13 +1564,14 @@ export default function HHGoaApp() {
               <p className="hhg-upload-sub">or choose from your device \u00b7 JPG, PNG, WEBP, HEIC</p>
               <div className="hhg-upload-actions" onClick={(e) => e.stopPropagation()}>
                 <button type="button" className="hhg-btn hhg-btn-outline" onClick={() => fileInputRef.current?.click()}>CHOOSE PHOTO</button>
-                <button type="button" className="hhg-btn hhg-btn-outline" onClick={() => cameraInputRef.current?.click()}>
+                <button type="button" className="hhg-btn hhg-btn-outline" onClick={openCamera}>
                   <Camera size={14} style={{ verticalAlign: "-2px", marginRight: 6 }} aria-hidden="true" />
                   TAKE A PHOTO
                 </button>
               </div>
               <input ref={fileInputRef} type="file" accept="image/*,.heic,.heif" aria-label="Choose a photo file" onChange={(e) => handleFile(e.target.files?.[0])} />
-              <input ref={cameraInputRef} type="file" accept="image/*" capture="user" aria-label="Take a photo" onChange={(e) => handleFile(e.target.files?.[0])} />
+              {/* Hidden fallback input — only used if getUserMedia camera access fails/is unsupported */}
+              <input ref={cameraInputRef} type="file" accept="image/*" capture="user" aria-label="Take a photo" onChange={(e) => handleFile(e.target.files?.[0])} style={{ display: "none" }} />
             </div>
 
             {imgObj && (
@@ -1652,6 +1715,30 @@ export default function HHGoaApp() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {showCamera && (
+        <div className="hhg-camera-overlay" role="dialog" aria-modal="true" aria-label="Take a photo">
+          <div className="hhg-camera-box">
+            <button type="button" className="hhg-close-x" aria-label="Close camera" onClick={closeCamera}>
+              <CloseIcon size={18} />
+            </button>
+            {cameraError ? (
+              <p className="hhg-camera-error">{cameraError}</p>
+            ) : (
+              <video ref={videoRef} className="hhg-camera-video" playsInline muted />
+            )}
+            <div className="hhg-camera-actions">
+              <button type="button" className="hhg-btn hhg-btn-primary" onClick={capturePhoto}>
+                <Camera size={16} style={{ verticalAlign: "-3px", marginRight: 8 }} aria-hidden="true" />
+                CAPTURE
+              </button>
+              <button type="button" className="hhg-btn hhg-btn-outline" onClick={closeCamera}>
+                CANCEL
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

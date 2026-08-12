@@ -903,11 +903,14 @@ function renderID(ctx, W, H, img, crop, fields) {
   ctx.font = `700 ${W * 0.016}px 'Space Mono', monospace`;
   ctx.fillText("HOSTED BY", W - lx, py);
   ctx.fillStyle = COLORS.darkGreen;
+  ctx.font = `600 ${W * 0.0155}px 'Space Mono', monospace`;
+  ctx.fillText("28\u201331 OCT", W - lx, py + H * 0.026);
+  ctx.fillStyle = COLORS.terracotta;
   ctx.font = `400 ${W * 0.028}px Anton, sans-serif`;
-  ctx.fillText("28\u201331 OCT STUDIO", W - lx, py + H * 0.032);
-  drawClockIcon(ctx, W - lx - W * 0.24, py + H * 0.024, W * 0.012, COLORS.terracotta);
+  ctx.fillText("STUDIO", W - lx, py + H * 0.058);
+  drawClockIcon(ctx, W - lx - W * 0.185, py + H * 0.019, W * 0.011, COLORS.green);
 
-  py += H * 0.065;
+  py += H * 0.095;
 
   // dashed divider before the icon row
   drawDashedLine(ctx, lx, py, W - lx * 2, "rgba(10,61,42,0.28)", W * 0.003, [W * 0.012, W * 0.009]);
@@ -1561,7 +1564,7 @@ export default function HHGoaApp() {
             >
               <Upload size={30} color={COLORS.green} aria-hidden="true" />
               <p className="hhg-upload-title">{imgObj ? "PHOTO LOADED \u2713" : "DROP YOUR PHOTO HERE"}</p>
-              <p className="hhg-upload-sub">or choose from your device \u00b7 JPG, PNG, WEBP, HEIC</p>
+              <p className="hhg-upload-sub">or choose from your device · JPG, PNG, WEBP, HEIC</p>
               <div className="hhg-upload-actions" onClick={(e) => e.stopPropagation()}>
                 <button type="button" className="hhg-btn hhg-btn-outline" onClick={() => fileInputRef.current?.click()}>CHOOSE PHOTO</button>
                 <button type="button" className="hhg-btn hhg-btn-outline" onClick={openCamera}>
@@ -1624,7 +1627,7 @@ export default function HHGoaApp() {
 
           <div className="hhg-panel hhg-panel-right">
             <canvas ref={canvasRef} className="hhg-preview-canvas" role="img" aria-label="Live preview of your HH Goa 2026 frame" />
-            <p className="hhg-preview-tag">Live Preview \u00b7 Updates Instantly</p>
+            <p className="hhg-preview-tag">Live Preview · Updates Instantly</p>
           </div>
         </div>
       </div>
@@ -1636,7 +1639,7 @@ export default function HHGoaApp() {
           <div className="hhg-how-card">
             <div className="hhg-how-num hhg-mono">01</div>
             <h3>Drop Your Photo</h3>
-            <p>Any photo works \u2014 portrait, landscape, selfie. We fit it automatically, no cropping needed.</p>
+            <p>Any photo works — portrait, landscape, selfie. We fit it automatically, no cropping needed.</p>
           </div>
           <div className="hhg-how-card">
             <div className="hhg-how-num hhg-mono">02</div>
@@ -1674,7 +1677,7 @@ export default function HHGoaApp() {
       {/* FOOTER */}
       <footer className="hhg-footer">
         <div className="hhg-display">HACKER HOUSE GOA 2026</div>
-        <p>28\u201331 OCT 2026 \u00b7 GOA, INDIA \u00b7 #FrameInGoa</p>
+        <p>28–31 OCT 2026 · GOA, INDIA · #FrameInGoa</p>
       </footer>
 
       {/* RESULT / DEVELOPING OVERLAY */}
@@ -1682,7 +1685,7 @@ export default function HHGoaApp() {
         <div className="hhg-overlay" role="dialog" aria-modal="true" aria-label="Generated frame result">
           {stage === "developing" && (
             <div className="hhg-developing">
-              <div className="hhg-developing-icon" aria-hidden="true">\u2600\uFE0F</div>
+              <div className="hhg-developing-icon" aria-hidden="true">☀️</div>
               <p className="hhg-mono">BUILDING YOUR GOA ID...</p>
             </div>
           )}
@@ -1691,7 +1694,7 @@ export default function HHGoaApp() {
               <button className="hhg-close-x" aria-label="Close" onClick={() => setStage("build")}>
                 <CloseIcon size={18} />
               </button>
-              <h2 className="hhg-display">YOU'RE IN. \uD83C\uDF34</h2>
+              <h2 className="hhg-display">YOU'RE IN. 🌴</h2>
               <p className="hhg-sub2">WELCOME TO HH GOA 2026</p>
               <img className="hhg-result-img" src={canvasRef.current?.toDataURL("image/png")} alt="Your generated HH Goa 2026 frame" />
               <div className="hhg-result-actions">
@@ -1701,7 +1704,7 @@ export default function HHGoaApp() {
                 </button>
                 <button className="hhg-btn hhg-btn-pink" onClick={handleShare}>
                   <Share2 size={16} style={{ verticalAlign: "-3px", marginRight: 8 }} aria-hidden="true" />
-                  SHARE TO X \u2192
+                  SHARE TO X →
                 </button>
                 <button className="hhg-btn hhg-btn-outline" onClick={() => setStage("build")}>
                   MAKE ANOTHER
@@ -1710,7 +1713,7 @@ export default function HHGoaApp() {
               <div className="hhg-hashtag-row">
                 <span>#FrameInGoa</span>
                 <button className="hhg-copy-btn" aria-label="Copy hashtag" onClick={copyHashtag}>
-                  {copied ? <Check size={16} /> : <span style={{ fontSize: 12 }}>\u2398</span>}
+                  {copied ? <Check size={16} /> : <span style={{ fontSize: 12 }}>⎘</span>}
                 </button>
               </div>
             </div>
